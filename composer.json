@@ -1,0 +1,64 @@
+{
+    "name": "samavidev/model-filtration",
+    "description": "Filtering the desired model records using query string",
+    "keywords": [
+        "SamaviDev",
+        "laravel",
+        "model-filtration"
+    ],
+    "homepage": "https://github.com/SamaviDev/model-filtration",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mahdi Samavi",
+            "email": "samavi.mahdi@gmail.com",
+            "homepage": "https://mahdi-samavi.ir/en",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/contracts": "^9.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^6.0",
+        "orchestra/testbench": "^7.0",
+        "pestphp/pest": "^1.21",
+        "pestphp/pest-plugin-laravel": "^1.1",
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "SamaviDev\\ModelFiltration\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SamaviDev\\ModelFiltration\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SamaviDev\\ModelFiltration\\ModelFiltrationServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
