@@ -8,15 +8,15 @@
 This package provides an annotation to retrieve records of a specific model filtered using a query string. Here's a quick example:
 
 ```php
-use App\Models\User;
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use SamaviDev\ModelFiltration\Attributes\Filter;
 
-class MyController
+#[Filter(['name' => 'username'])]
+class User extends Authenticatable
 {
-    #[Filter(User::class, 'and', ['name', 'email'])]
-    public function myMethod($users)
-    {
-    }
+    ...
 }
 ```
 
@@ -30,43 +30,61 @@ composer require samavidev/model-filtration
 
 ## Usage
 
-- The first argument of the model you want to filter using the query string.
-- The second argument is the operand that is applied to the table fields (`and`, `or`, `like`, `like:or`). You can even use `with` for relationships.
-- The third argument is the valid fields that can be used in the query string.
+- The first argument is valid fields that can be used in the query string. which can be in the form of a string or an array, you can also use an association array to assign a query to a specific model.
+- The second argument is the operator that is applied to the table fields (`and`, `or`, `like`, `like:or`). You can even use `with` for relationships. The default value is `and`.
 
+for example:
 ```php
-#[Filter(User::class, 'and', ['name', 'email'])]
-```
-
-```php
-#[Filter(User::class, 'or', ['name', 'email'])]
-```
-
-```php
-#[Filter(User::class, 'like', ['name', 'email'])]
-```
-
-```php
-#[Filter(User::class, 'like:or', ['name', 'email'])]
-```
-
-```php
-#[Filter(User::class, 'with', 'relationship')]
+#[Filter(['name' => 'username', 'email' => 'useremail'], 'or')]
 ```
 
 It can also be used multiple times.
 ```php
-use App\Models\User;
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use SamaviDev\ModelFiltration\Attributes\Filter;
 
-class MyController
+#[Filter('id')]
+#[Filter(['name' => 'username'])]
+class User extends Authenticatable
 {
-    #[Filter(User::class, 'or', ['field1', 'field2'])]
-    #[Filter(User::class, 'like', ['field3'])]
-    #[Filter(User::class, 'with', 'relationship')]
-    public function myMethod($users)
+    ...
+}
+```
+
+##### Filter group definition:
+You can also define an `Attribute` class to use as a group of filters for your models. For this, you must implement the `Group` interface.
+```php
+namespace App\Attributes;
+
+use Attribute;
+use SamaviDev\ModelFiltration\Contracts\Group;
+
+#[Attribute]
+class UsersFilter implements Group
+{
+    public function props(): array
     {
+        return [
+            'or' => ['attribute', ...]
+            'and' => ['attribute' => 'alias', ...],
+            ...
+        ];
     }
+}
+```
+And finally, you can use it in your model like this:
+```php
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Attributes\UsersFilter;
+
+#[UsersFilter]
+class User extends Authenticatable
+{
+    ...
 }
 ```
 
