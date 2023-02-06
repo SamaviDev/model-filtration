@@ -2,35 +2,45 @@
 
 namespace SamaviDev\ModelFiltration;
 
-use Illuminate\Routing\Events\RouteMatched;
-use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use ReflectionMethod;
+use ReflectionAttribute;
+use ReflectionClass;
 use SamaviDev\ModelFiltration\Attributes\Filter;
+use SamaviDev\ModelFiltration\Contracts\Group;
 
 class ModelFiltrationServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->callAfterResolving('router', function (Router $router) {
-            $router->matched($this->assign(...));
-        });
+        Event::listen('eloquent.booting:*', $this->listener(...));
     }
 
-    private function assign(RouteMatched $matched): void
+    protected function listener(string $event, array $models): void
     {
-        $route = $matched->route;
+        $model = $models[0];
+        [$simple, $group] = $this->getAttributes($model);
 
-        if (! isset($route->action['controller'])) {
-            return;
+        foreach ($simple as $attribute) {
+            $attribute->newInstance()->setup($model);
         }
 
-        $method = new ReflectionMethod(...explode('@', $route->action['uses']));
+        foreach ($group as $attribute) {
+            $instance = $attribute->newInstance();
 
-        foreach ($method->getAttributes(Filter::class) as $attribute) {
-            $attribute->newInstance()->setup($matched->request);
+            foreach ($instance->props() as $operator => $accepted) {
+                (new Filter($accepted, $operator))->setup($model);
+            }
         }
+    }
 
-        $route->setParameter('filtered', Filter::get());
+    protected function getAttributes($model): array
+    {
+        $class = new ReflectionClass($model);
+
+        return [
+            $class->getAttributes(Filter::class),
+            $class->getAttributes(Group::class, ReflectionAttribute::IS_INSTANCEOF),
+        ];
     }
 }
